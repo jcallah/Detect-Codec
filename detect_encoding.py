@@ -73,7 +73,6 @@ def detect_encoding(file_path: str, **kwargs) -> str:
     """
     codec_known: bool = False
     detected_codec: str = None
-    decoded_contents: str = None
     py_version: tuple = sys.version_info
 
     params: dict = {
@@ -136,7 +135,7 @@ def detect_encoding(file_path: str, **kwargs) -> str:
 
     print(TextStyle.RESET_ALL)
 
-    return detected_codec, decoded_contents
+    return detected_codec
 
 
 def attempt_decode(text: bin, codec: str) -> bool:
@@ -167,7 +166,3 @@ def attempt_decode(text: bin, codec: str) -> bool:
 
     finally:
         return codec_found
-
-
-if __name__ == '__main__':
-    codec, contents = detect_encoding('t.txt', verbose=True)
