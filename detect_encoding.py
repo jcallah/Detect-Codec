@@ -7,7 +7,7 @@ binary string using various codecs.
 """
 
 
-__version__ = '1.0.1'  # major.minor.micro as specified in PEP 440
+__version__ = '1.0.0'  # major.minor.micro as specified in PEP 440
 __status__ = 'Production'
 
 __author__ = 'Jason Callahan'
@@ -49,48 +49,44 @@ CODECS: list = [
 InitColorama()  # Use Colorama console text colors on Windows. Uncessary for Linux.
 
 
-def detect_encoding(file_path: str, **kwargs) -> str:
+def detect_encoding(
+        file_path: str,
+        size: int = None,
+        full_check: bool = True,
+        verbose: bool = False
+        ) -> str:
     """
     Attempt to identify the encoding of a text file.
 
-    Parameters
-    ----------
-    file_path : str
-        DESCRIPTION.
-    **kwargs : dict
-        full_check: Read the entire file contents for decoding attempts. If false only the first line
+    Args:
+        file_path (str): The full path and filename of the file to identify
+            the codec for.
+        full_check (bool): Read the entire file contents for decoding attempts. If false only the first line
             will be read. Useful for very large files, but result in failure to identify text that
             improperly decodes later in the file. Defaults is True.
-        size: The file size in mb to prevent very large text files from being read and processed.
+        size (int): The file size in mb to prevent very large text files from being read and processed.
             Default is None, which imports all file sizes.
-        verbose: Prints each codec and True/False to the console as each decode attempt occurs.
+        verbose (bool): Prints each codec and True/False to the console as each decode attempt occurs.
 
-    Returns
-    -------
-    str
-        The detected codec.
-
+    Returns:
+        str: The detected codec.
+    
+    Raises:
+        ValueError: The file size is greater than the set limit.
+        SyntaxError: Invalid or missing encoding declaration for
+        
     """
     codec_known: bool = False
     detected_codec: str = None
     py_version: tuple = sys.version_info
-
-    params: dict = {
-        'full_check': True,
-        'size': None,
-        'verbose': False
-    }
-
-    for key, value in kwargs.items():
-        params[key] = value
 
     # This module may include codecs which are not included in Python versions less than 3.7.
     assert py_version[0] >= 3 and py_version[1] >= 7, 'Python version must be at least 3.7'
 
     file_size: float = round(os.path.getsize(file_path) / 1048576, 4)  # File size in MB
 
-    if params['size'] is not None:
-        assert file_size < params['size'], 'The file size is greater than the set limit.'
+    if size is not None and file_size < size:
+        raise ValueError('The file size is greater than the set limit.')
         sys.exit()
 
     with open(file_path, 'rb') as file:
@@ -104,7 +100,7 @@ def detect_encoding(file_path: str, **kwargs) -> str:
             if 'invalid or missing encoding declaration for' in str(err) is False:
                 raise
 
-            if params['verbose']:
+            if verbose:
                 print(TextStyle.BRIGHT)
                 print(TextColor.RED, 'No encoding cookie present. Starting decode attempts...')
 
@@ -113,7 +109,7 @@ def detect_encoding(file_path: str, **kwargs) -> str:
             codec_known = True
 
     with open(file_path, 'rb') as file:
-        if params['full_check']:
+        if full_check:
             contents: str = file.read()
 
         else:
@@ -123,7 +119,7 @@ def detect_encoding(file_path: str, **kwargs) -> str:
         for codec in CODECS:
             codec_known = attempt_decode(contents, codec)
 
-            if params['verbose']:
+            if verbose:
                 if codec_known:
                     print(TextColor.GREEN, f'{codec}: True')
 
