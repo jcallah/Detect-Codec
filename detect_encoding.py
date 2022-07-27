@@ -7,7 +7,7 @@ binary string using various codecs.
 """
 
 
-__version__ = '1.0.0'  # major.minor.micro as specified in PEP 440
+__version__ = '1.0.1'  # major.minor.micro as specified in PEP 440
 __status__ = 'Production'
 
 __author__ = 'Jason Callahan'
@@ -30,9 +30,9 @@ from colorama import Style as TextStyle
 from colorama import init as InitColorama
 
 
-# Pyton 3.7 codec list.
+# Python 3.7 codec list.
 CODECS: list = [
-    'ascii', 'utf-7', 'utf-8', 'utf-8-sig', 'utf-16', 'utf-16-be', 'utf-16-le', 'utf-32', 'utf-32-be',
+    'ascii', 'utf-7', 'utf-8-sig', 'utf-8', 'utf-16', 'utf-16-be', 'utf-16-le', 'utf-32', 'utf-32-be',
     'utf-32-le', 'big5', 'big5hkscs', 'cp037', 'cp273', 'cp424', 'cp437', 'cp500', 'cp720', 'cp737',
     'cp775', 'cp850', 'cp852', 'cp855', 'cp856', 'cp857', 'cp858', 'cp860', 'cp861', 'cp862', 'cp863',
     'cp864', 'cp865', 'cp866', 'cp869', 'cp874', 'cp875', 'cp932', 'cp949', 'cp950', 'cp1006', 'cp1026',
@@ -95,6 +95,8 @@ def detect_encoding(file_path: str, **kwargs) -> str:
 
     with open(file_path, 'rb') as file:
         try:
+            # Check the encoding cookie for encoding information.
+            # Throw SyntaxError if it cannot be found.
             token: tuple = tokenize.detect_encoding(file.readline)
 
         except SyntaxError as err:
